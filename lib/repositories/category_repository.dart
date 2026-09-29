@@ -12,16 +12,22 @@ class CategoryResult {
 class CategoryRepository {
   final dbHelper = DatabaseHelper.instance;
 
-  Future<List<AppCategory>> getAllCategories() async {
+  // Kategori default (userId null) + kategori privat milik user ini sendiri
+  Future<List<AppCategory>> getAllCategories(int userId) async {
     final db = await dbHelper.database;
-    final result = await db.query('categories', orderBy: 'name ASC');
+    final result = await db.query(
+      'categories',
+      where: 'userId IS NULL OR userId = ?',
+      whereArgs: [userId],
+      orderBy: 'name ASC',
+    );
     return result.map((e) => AppCategory.fromMap(e)).toList();
   }
 
-  Future<CategoryResult> addCategory(String name) async {
+  Future<CategoryResult> addCategory(String name, int userId) async {
     if (name.trim().isEmpty) return CategoryResult.error('Nama kategori tidak boleh kosong');
     final db = await dbHelper.database;
-    await db.insert('categories', {'name': name.trim(), 'isDefault': 0});
+    await db.insert('categories', {'name': name.trim(), 'isDefault': 0, 'userId': userId});
     return CategoryResult.success();
   }
 

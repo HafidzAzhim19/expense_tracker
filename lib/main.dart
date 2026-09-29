@@ -6,6 +6,7 @@ import 'services/session_manager.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'utils/app_colors.dart';
+import 'providers/statistics_provider.dart';
 
 void main() => runApp(const MyApp());
 
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => StatisticsProvider()),
       ],
       child: MaterialApp(
         title: 'Expense Tracker',

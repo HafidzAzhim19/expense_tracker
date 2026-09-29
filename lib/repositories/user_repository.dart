@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:crypto/crypto.dart';
 import '../db/database_helper.dart';
 import '../models/user.dart';
+import '../utils/validators.dart';
 
 class AuthResult {
   final bool success;
@@ -14,15 +16,27 @@ class AuthResult {
 class UserRepository {
   final dbHelper = DatabaseHelper.instance;
 
-  String _hashPassword(String password) => sha256.convert(utf8.encode(password)).toString();
+  String _generateSalt() {
+    final rand = Random.secure();
+    final bytes = List<int>.generate(16, (_) => rand.nextInt(256));
+    return base64Encode(bytes);
+  }
+
+  String _hashPassword(String password, String salt) {
+    List<int> bytes = utf8.encode(password + salt);
+    for (int i = 0; i < 10000; i++) {
+      bytes = sha256.convert(bytes).bytes;
+    }
+    return base64Encode(bytes);
+  }
 
   Future<AuthResult> register(String username, String password) async {
-    if (username.trim().isEmpty || password.isEmpty) {
-      return AuthResult.error('Username dan password tidak boleh kosong');
+    if (username.trim().isEmpty) {
+      return AuthResult.error('Username tidak boleh kosong');
     }
-    // Validasi dasar MASVS-AUTH: panjang minimum password
-    if (password.length < 6) {
-      return AuthResult.error('Password minimal 6 karakter');
+    final complexityError = PasswordValidator.validate(password);
+    if (complexityError != null) {
+      return AuthResult.error(complexityError);
     }
 
     final db = await dbHelper.database;
@@ -31,16 +45,24 @@ class UserRepository {
       return AuthResult.error('Username sudah digunakan');
     }
 
-    final hashed = _hashPassword(password);
-    final id = await db.insert('users', {'username': username, 'password': hashed});
+    final salt = _generateSalt();
+    final hashed = _hashPassword(password, salt);
+    final id = await db.insert('users', {'username': username, 'password': hashed, 'salt': salt});
     return AuthResult.success(AppUser(id: id, username: username, password: hashed));
   }
 
   Future<AuthResult> login(String username, String password) async {
     final db = await dbHelper.database;
-    final hashed = _hashPassword(password);
-    final result = await db.query('users', where: 'username = ? AND password = ?', whereArgs: [username, hashed]);
-    if (result.isNotEmpty) return AuthResult.success(AppUser.fromMap(result.first));
+    final result = await db.query('users', where: 'username = ?', whereArgs: [username]);
+    if (result.isEmpty) return AuthResult.error('Username atau password salah');
+
+    final row = result.first;
+    final salt = row['salt'] as String;
+    final hashed = _hashPassword(password, salt);
+
+    if (hashed == row['password']) {
+      return AuthResult.success(AppUser.fromMap(row));
+    }
     return AuthResult.error('Username atau password salah');
   }
 }

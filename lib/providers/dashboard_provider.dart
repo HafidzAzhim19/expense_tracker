@@ -21,7 +21,7 @@ class DashboardProvider extends ChangeNotifier {
 
   Future<void> load(int userId) async {
     _userId = userId;
-    categories = await _catRepo.getAllCategories();
+    categories = await _catRepo.getAllCategories(userId);
     categoryMap = {for (var c in categories) c.id!: c.name};
     await _loadTransactions();
     await _loadTotals();
@@ -66,9 +66,10 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   Future<String> addCategoryAndRefresh(String name) async {
-    final result = await _catRepo.addCategory(name);
+    if (_userId == null) return 'Gagal: sesi user tidak ditemukan';
+    final result = await _catRepo.addCategory(name, _userId!);
     if (result.success) {
-      categories = await _catRepo.getAllCategories();
+      categories = await _catRepo.getAllCategories(_userId!);
       categoryMap = {for (var c in categories) c.id!: c.name};
       notifyListeners();
       return 'Kategori ditambahkan';

@@ -55,4 +55,14 @@ class TransactionRepository {
     final result = await db.rawQuery("SELECT SUM(amount) as total FROM transactions WHERE userId = ? AND type = 'EXPENSE'", [userId]);
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
   }
+
+  Future<Map<int, double>> getTotalsByCategory(int userId, TransactionType type) async {
+  final db = await dbHelper.database;
+  final typeStr = type == TransactionType.income ? 'INCOME' : 'EXPENSE';
+  final result = await db.rawQuery(
+    'SELECT categoryId, SUM(amount) as total FROM transactions WHERE userId = ? AND type = ? GROUP BY categoryId',
+    [userId, typeStr],
+  );
+  return {for (var row in result) row['categoryId'] as int: (row['total'] as num).toDouble()};
+  }
 }

@@ -37,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
               const Text('Buat Akun Baru', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textInk)),
               const SizedBox(height: 4),
-              const Text('Password minimal 6 karakter', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+              const Text('Min. 8 karakter, kombinasi huruf besar, kecil, angka & simbol', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
               const SizedBox(height: 32),
               TextField(
                 controller: _usernameController,

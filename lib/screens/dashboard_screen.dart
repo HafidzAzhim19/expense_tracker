@@ -7,6 +7,7 @@ import '../utils/app_colors.dart';
 import '../utils/format_utils.dart';
 import 'add_transaction_screen.dart';
 import 'login_screen.dart';
+import 'statistics_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final int userId;
@@ -49,6 +50,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Text(widget.username, style: const TextStyle(fontSize: 14, color: AppColors.textMuted)),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.pie_chart, color: AppColors.primary),
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => StatisticsScreen(userId: widget.userId))),
                   ),
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(foregroundColor: AppColors.primary, side: const BorderSide(color: AppColors.primary, width: 1.4), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
