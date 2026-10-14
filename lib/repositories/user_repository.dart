@@ -57,12 +57,22 @@ class UserRepository {
     if (result.isEmpty) return AuthResult.error('Username atau password salah');
 
     final row = result.first;
-    final salt = row['salt'] as String;
-    final hashed = _hashPassword(password, salt);
 
-    if (hashed == row['password']) {
-      return AuthResult.success(AppUser.fromMap(row));
-    }
-    return AuthResult.error('Username atau password salah');
+    // ============================================================
+    // [TAMPERED] Baris asli di-nonaktifkan untuk demonstrasi tugas
+    // Reverse Engineering & Code Tampering (MASTG 0x04c).
+    // Logic verifikasi password DILEWATI SENGAJA — login akan
+    // selalu berhasil berapapun password yang diinput, asalkan
+    // username-nya terdaftar.
+    // ============================================================
+    //
+    // final salt = row['salt'] as String;
+    // final hashed = _hashPassword(password, salt);
+    // if (hashed == row['password']) {
+    //   return AuthResult.success(AppUser.fromMap(row));
+    // }
+    // return AuthResult.error('Username atau password salah');
+
+    return AuthResult.success(AppUser.fromMap(row)); // [TAMPERED] selalu sukses
   }
 }
