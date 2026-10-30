@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/statistics_provider.dart';
+import 'services/jwt_service.dart';
 import 'services/session_manager.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'utils/app_colors.dart';
-import 'providers/statistics_provider.dart';
 
 void main() => runApp(const MyApp());
 
@@ -23,7 +24,11 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Expense Tracker',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(scaffoldBackgroundColor: AppColors.background, colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary), useMaterial3: true),
+        theme: ThemeData(
+          scaffoldBackgroundColor: AppColors.background,
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
+          useMaterial3: true,
+        ),
         home: const SplashDecider(),
       ),
     );
@@ -38,6 +43,7 @@ class SplashDecider extends StatefulWidget {
 
 class _SplashDeciderState extends State<SplashDecider> {
   final _session = SessionManager();
+  final _jwtService = JwtService();
 
   @override
   void initState() {
@@ -46,17 +52,29 @@ class _SplashDeciderState extends State<SplashDecider> {
   }
 
   Future<void> _checkLogin() async {
+    final isJwtValid = await _jwtService.isSessionValid();
     final loggedIn = await _session.isLoggedIn();
+
     if (!mounted) return;
-    if (loggedIn) {
+
+    if (isJwtValid && loggedIn) {
       final userId = await _session.getLoggedInUserId();
       final username = await _session.getLoggedInUsername();
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => DashboardScreen(userId: userId, username: username)));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => DashboardScreen(userId: userId, username: username)),
+      );
     } else {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+      await _jwtService.clearToken();
+      await _session.logout();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
     }
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.primary)));
+  Widget build(BuildContext context) => const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
 }

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "344855778462",
+    "project_id": "expense-tracker-86aca",
+    "storage_bucket": "expense-tracker-86aca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344855778462:android:290de6e0c4f6cba489178f",
+        "android_client_info": {
+          "package_name": "com.example.expense_tracker_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "344855778462-13qub6hbubo22jjhurbhi5iisk57dg2i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.expense_tracker_flutter",
+            "certificate_hash": "15f4442f72b49324f45bd2700d2af37af5586d89"
+          }
+        },
+        {
+          "client_id": "344855778462-itdv01bsifoakrq43p34qqroul32q3v9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa3iwHLgjsKLd1j4OyceNUDgd71I5L-rY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "344855778462-itdv01bsifoakrq43p34qqroul32q3v9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

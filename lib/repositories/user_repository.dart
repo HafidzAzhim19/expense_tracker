@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:math';
+
 import 'package:crypto/crypto.dart';
+
 import '../db/database_helper.dart';
 import '../models/user.dart';
+import '../services/jwt_service.dart';
 import '../utils/validators.dart';
 
 class AuthResult {
@@ -15,6 +18,7 @@ class AuthResult {
 
 class UserRepository {
   final dbHelper = DatabaseHelper.instance;
+  final _jwtService = JwtService();
 
   String _generateSalt() {
     final rand = Random.secure();
@@ -40,20 +44,35 @@ class UserRepository {
     }
 
     final db = await dbHelper.database;
-    final existing = await db.query('users', where: 'username = ?', whereArgs: [username]);
+    final existing = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
     if (existing.isNotEmpty) {
       return AuthResult.error('Username sudah digunakan');
     }
 
     final salt = _generateSalt();
     final hashed = _hashPassword(password, salt);
-    final id = await db.insert('users', {'username': username, 'password': hashed, 'salt': salt});
-    return AuthResult.success(AppUser(id: id, username: username, password: hashed));
+    final id = await db.insert('users', {
+      'username': username,
+      'password': hashed,
+      'salt': salt,
+    });
+
+    final user = AppUser(id: id, username: username, password: hashed);
+    await _jwtService.generateAndSaveToken(id.toString());
+    return AuthResult.success(user);
   }
 
   Future<AuthResult> login(String username, String password) async {
     final db = await dbHelper.database;
-    final result = await db.query('users', where: 'username = ?', whereArgs: [username]);
+    final result = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
     if (result.isEmpty) return AuthResult.error('Username atau password salah');
 
     final row = result.first;
@@ -61,7 +80,9 @@ class UserRepository {
     final hashed = _hashPassword(password, salt);
 
     if (hashed == row['password']) {
-      return AuthResult.success(AppUser.fromMap(row));
+      final user = AppUser.fromMap(row);
+      await _jwtService.generateAndSaveToken(user.id.toString());
+      return AuthResult.success(user);
     }
     return AuthResult.error('Username atau password salah');
   }

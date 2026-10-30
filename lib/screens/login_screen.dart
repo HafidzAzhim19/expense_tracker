@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/jwt_service.dart';
+import '../services/oauth_service.dart';
 import '../services/session_manager.dart';
 import '../utils/app_colors.dart';
 import 'register_screen.dart';
@@ -16,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _session = SessionManager();
+  final _jwtService = JwtService();
+  final _oauthService = OauthService();
   bool _obscure = true;
 
   @override
@@ -24,12 +28,12 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
               Center(
                 child: Container(
                   width: 72,
@@ -81,6 +85,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 52,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.border, width: 1.4),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  icon: const Icon(Icons.g_mobiledata, size: 28, color: AppColors.primary),
+                  label: const Text('Masuk dengan Google', style: TextStyle(color: AppColors.textInk, fontSize: 15, fontWeight: FontWeight.w600)),
+                  onPressed: _handleGoogleLogin,
+                ),
+              ),
               const SizedBox(height: 18),
               TextButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RegisterScreen())),
@@ -105,10 +122,31 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     if (userId != null) {
       await _session.saveLoggedInUser(userId, username);
+      await _jwtService.generateAndSaveToken(userId.toString());
       if (!mounted) return;
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => DashboardScreen(userId: userId, username: username)));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(auth.errorMessage ?? 'Login gagal')));
+    }
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    final account = await _oauthService.signInWithGoogle();
+    if (!mounted) return;
+    if (account != null) {
+      final googleUserName = account.displayName ?? account.email;
+      await _jwtService.generateAndSaveToken(account.email);
+      await _session.saveLoggedInUser(1, googleUserName);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => DashboardScreen(userId: 1, username: googleUserName),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login Google dibatalkan atau gagal')),
+      );
     }
   }
 }
