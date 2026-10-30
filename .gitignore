@@ -46,3 +46,9 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Sisa file ekstraksi & tools RE
+apk-extracted/
+blutter/
+blutter-fixed/
+app-release-fresh.zip
